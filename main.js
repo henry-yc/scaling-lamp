@@ -339,7 +339,8 @@ var vue = new Vue ({
         timer: '',
         // showNewTaskType: ''
         newTaskType: "",
-        taskTypeExists: false
+        taskTypeExists: false,
+        googleEmailExists: false
     },
     created: function() {
         this.currentPage = window.location.pathname;
@@ -382,7 +383,7 @@ var vue = new Vue ({
                 this.getTasks();
                 this.getTaskTypes();
                 this.getMembersList();
-                // this.timer = setInterval(this.getTasks, 30000);
+                this.timer = setInterval(this.getTasks, 60000);
                 // setInterval(this.getTasks, 1000);
             }
         },
@@ -443,16 +444,20 @@ var vue = new Vue ({
         linkGoogleAccount: function() {
             var auth2 = gapi.auth2.getAuthInstance();
             auth2.signIn().then(function() {
-                // Reflect link on user's profile
+                var id_token = auth2.currentUser.get().getAuthResponse().id_token;
+                // Update user's profile with Google account information
                 var xhttp = new XMLHttpRequest();
                 xhttp.onreadystatechange = function() {
                     if (this.readyState == 4 && this.status == 200) {
                         vue.getProfile();
+                        vue.googleEmailExists = false;
+                    } else if (this.readyState == 4 && this.status == 409) {
+                        vue.googleEmailExists = true;
                     }
                 };
                 xhttp.open("POST", "/users/googleaccount", true);
                 xhttp.setRequestHeader("Content-type", "application/json");
-                xhttp.send();
+                xhttp.send(JSON.stringify({token: id_token}));
 
             });
         },
@@ -473,6 +478,17 @@ var vue = new Vue ({
             } else {
                 gapi.auth2.getAuthInstance().signIn();
             }
+        },
+        unlinkGoogleCalendar: function(event) {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    vue.getProfile();
+                }
+            };
+            xhttp.open("POST", "/users/unlinkgooglecalendar", true);
+            xhttp.setRequestHeader("Content-type", "application/json");
+            xhttp.send();
         },
         addPreferencePostReg: function () {
             this.preferences.push("");
@@ -752,7 +768,12 @@ var vue = new Vue ({
               return Date.parse(new Date());
         },
         getCurrentTimeString: function() {  // Return current time as string
-            return new Date();
+            return new Date(); // Date Fri Jun 26 2020 15:49:16 GMT+0930 (Australian Central Standard Time)
+        },
+        getTimeString: function(date) {
+            var d = new Date(date);
+            var time = d.toString().split(' ')[4];
+            return time; // 18:00:00
         },
         toggleUpcoming: function() {
             this.uparrow1=!this.uparrow1;
@@ -914,15 +935,16 @@ var vue = new Vue ({
         },
         addCalendarEvent: function(taskid, membersEmails) {
             var startDay = this.dateToDashString(this.tDueDate);
-            var startTime = this.dateToLocaleTimeString(this.tDueDate).split(' ')[0];
+            // var startTime = this.dateToLocaleTimeString(this.tDueDate).split(' ')[0];
+            var startTime = this.getTimeString(this.tDueDate);
             var endDateTime = this.tDueDate + 1;
             var endDay = this.dateToDashString(endDateTime);
-            var endTime = this.dateToLocaleTimeString(endDateTime).split(' ')[0];
+            // var endTime = this.dateToLocaleTimeString(endDateTime).split(' ')[0];
+            var endTime = this.getTimeString(endDateTime);
             var event = {
                 'summary': this.tTitle,
                 'description': this.tDetails,
                 'start': {
-                    'dateTime': startDay + "T" + startTime,
                     'timeZone': 'Australia/Adelaide'
                 },
                 'end': {
@@ -1099,7 +1121,8 @@ var vue = new Vue ({
             this.newPriority = array[index].priority;
             this.newType = array[index].type;
             this.newDueDay = this.dateToDashString(array[index].dueDate);
-            this.newDueTime = this.dateToLocaleTimeString(array[index].dueDate).split(' ')[0]; // Need to split as FireFox adds AM/PM to the end which makes it incompatible with date selector
+            // this.newDueTime = this.dateToLocaleTimeString(array[index].dueDate).split(' ')[0]; // Need to split as FireFox adds AM/PM to the end which makes it incompatible with date selector
+            this.newDueTime = this.getTimeString(array[index].dueDate);
             this.newReqApproval = array[index].reqApproval;
             this.membersToRemove = [];
             document.getElementById("editTask").style.display = "block";
@@ -1123,10 +1146,12 @@ var vue = new Vue ({
         },
         updateCalendarEvent: function(eventid, membersEmails) {
             var startDay = this.dateToDashString(this.newDueDate);
-            var startTime = this.dateToLocaleTimeString(this.newDueDate).split(' ')[0];
+            // var startTime = this.dateToLocaleTimeString(this.newDueDate).split(' ')[0];
+            var startTime = this.getTimeString(this.newDueDate);
             var endDateTime = this.newDueDate + 1;
             var endDay = this.dateToDashString(endDateTime);
-            var endTime = this.dateToLocaleTimeString(endDateTime).split(' ')[0];
+            // var endTime = this.dateToLocaleTimeString(endDateTime).split(' ')[0];
+            var endTime = this.getTimeString(endDateTime);
 
             // Get event
             gapi.client.calendar.events.get({
