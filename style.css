@@ -106,6 +106,34 @@ header {
     padding-top: 8em; /* Location of the box */
 }
 
+.about-us {
+    padding-top: 15em; /* Location of the box */
+}
+
+.about-us-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 2em;
+    border: 1px solid #888;
+    /*border-radius: 8px;*/
+    width: 40em;
+    height: auto;
+}
+
+.contact-us {
+    padding-top: 17em; /* Location of the box */
+}
+
+.contact-us-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 2em;
+    border: 1px solid #888;
+    /*border-radius: 8px;*/
+    width: 30em;
+    height: auto;
+}
+
 .search-results {
     padding-top: 4em;
     padding-bottom: 4em;

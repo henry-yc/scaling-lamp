@@ -1,3 +1,11 @@
+function showAboutUs() {
+    document.getElementById("aboutUs").style.display = "block";
+}
+
+function showContactUs() {
+    document.getElementById("contactUs").style.display = "block";
+}
+
 var loginBox = document.getElementById("login");
 
 // Show modal box
@@ -107,6 +115,13 @@ window.onclick = function(event) {
     if (event.target == document.getElementById("newTaskTypeBox")) {
         document.querySelector("#newTaskTypeBox").style.display = "none";
     }
+    if (event.target == document.getElementById("aboutUs")) {
+        document.getElementById("aboutUs").style.display = "none";
+    }
+    if (event.target == document.getElementById("contactUs")) {
+        document.getElementById("contactUs").style.display = "none";
+    }
+
 };
 
 // Show confirmation box
